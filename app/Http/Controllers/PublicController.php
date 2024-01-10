@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\adminMail;
+use App\Models\Product;
+use App\Mail\ContactMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PublicController extends Controller
 {
     public function home() {
-        return view('welcome');
+        $products = Product::all();
+        
+        return view('welcome', compact('products'));
     }
 
     Public function PorschePage(){
@@ -79,13 +85,36 @@ class PublicController extends Controller
                 'img'=>'/img/Enzo.jpg'
             ],
         ];
+        
         foreach($Ferraris as $Ferrari){
+            //dd{$Ferrari};
             if ($Ferrari['tipes']==$tipes) {
                 return view('DettaglioFerrari' , ['Ferrari'=>$Ferrari]);
-    
+                
             }
         }
         
+    }
+
+    public function contacts(){
+
+        return view('contacts');
+    }
+
+    public function submit(Request $Request){
+        $adminMail="contact@Autoshop.com";
+
+        $name=$Request->name;
+        $email=$Request->email;
+        $body=$Request->body;
+
+        $user = compact('name','email','body');
+        //?mail per l'utente
+        Mail::to($email)->send(new ContactMail($user));
+        //?mail per l'admin
+        Mail::to($adminMail)->send(new adminMail($user));
+
+        return redirect(route ('home'))->with('message','la tua email è stata inviata correttamente');
     }
 }
 
